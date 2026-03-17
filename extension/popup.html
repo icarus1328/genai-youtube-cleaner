@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="icons/icon-32.png" alt="Logo">
+      <h1>YT Blocker</h1>
+    </div>
+    
+    <div class="setting-row">
+      <div class="setting-info">
+        <h3>Block Ads</h3>
+        <p>Hides video ads and banners</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="blockAds" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <h3>Block Shorts</h3>
+        <p>Removes Shorts and redirects directly</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="blockShorts" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="footer">
+      <button id="refreshBtn">Reload Page to Apply</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
