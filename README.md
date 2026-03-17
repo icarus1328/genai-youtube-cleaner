@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="YT Ad & Shorts Blocker Logo" width="128"/>
+</p>
+
 # YouTube Ad & Shorts Blocker
 
 A lightweight browser extension (compatible with **Safari** and **Chrome**) designed to improve your YouTube experience by hiding ads and completely disabling the YouTube Shorts UI.
