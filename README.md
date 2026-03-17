@@ -1,6 +1,6 @@
 # YouTube Ad & Shorts Blocker
 
-A lightweight Safari Web Extension designed specifically to improve your YouTube experience by hiding ads and completely disabling the YouTube Shorts UI.
+A lightweight browser extension (compatible with **Safari** and **Chrome**) designed to improve your YouTube experience by hiding ads and completely disabling the YouTube Shorts UI.
 
 ## Overview
 - **Blocks Ad Elements:** Hides banner ads, overlay ads, sidebar ads, and uses DOM manipulation to automatically skip or fast-forward unskippable video ads.
@@ -39,6 +39,20 @@ Because this app isn't distributed through the official Mac App Store, your Mac 
 2. Open **Safari**.
 3. Go to **Safari > Settings > Extensions**.
 4. Check the box next to **YTBlocker** to activate it! Enjoy!
+
+---
+
+## Installation (Chrome)
+
+The extension is a standard WebExtensions Manifest V3 extension and works directly in Chrome — no additional wrapping or compilation needed.
+
+1. Open Chrome and navigate to `chrome://extensions`.
+2. Toggle **Developer mode** ON (top-right corner).
+3. Click **"Load unpacked"**.
+4. Select the `extension/` folder from this repository.
+5. The extension is now active — visit YouTube to confirm ads and Shorts are blocked.
+
+> **Note:** In Chrome, the extension will remain active across browser restarts automatically. No Gatekeeper bypassing or Mac app required.
 
 ---
 
