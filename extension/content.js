@@ -5,6 +5,8 @@ let config = {
 };
 
 // Load preferences from storage
+console.log("[YT Blocker] Extension starting up on", window.location.href);
+
 chrome.storage.local.get(['blockAds', 'blockShorts'], (result) => {
   if (result.blockAds !== undefined) config.blockAds = result.blockAds;
   if (result.blockShorts !== undefined) config.blockShorts = result.blockShorts;
@@ -94,14 +96,16 @@ function applyStyles() {
   if (!styleEl) {
     styleEl = document.createElement('style');
     styleEl.id = 'yt-blocker-styles';
-    // try to insert as early as possible
-    if (document.head || document.documentElement) {
-      (document.head || document.documentElement).appendChild(styleEl);
-    } else {
-      // document.documentElement may not exist immediately in some edge cases
-      document.addEventListener('DOMContentLoaded', () => {
+    try {
+      if (document.head || document.documentElement) {
         (document.head || document.documentElement).appendChild(styleEl);
-      });
+      } else {
+        document.addEventListener('DOMContentLoaded', () => {
+          (document.head || document.documentElement).appendChild(styleEl);
+        });
+      }
+    } catch (e) {
+      console.error("[YT Blocker] Error appending styles:", e);
     }
   }
   styleEl.textContent = css;
@@ -109,63 +113,50 @@ function applyStyles() {
 
 // Additional DOM manipulation for things CSS can't easily catch
 function cleanup() {
-  if (config.blockAds) {
-    // Skip video ad if it gets through (forces "Skip Ad" button click if possible, or sets video time to end)
-    const skipButton = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button');
-    if (skipButton) {
-      skipButton.click();
+  try {
+    if (config.blockAds) {
+      const skipButton = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button');
+      if (skipButton) skipButton.click();
+      
+      const videoAds = document.querySelectorAll('.ad-showing video');
+      videoAds.forEach(video => {
+        if (video && !isNaN(video.duration)) {
+          video.muted = true;
+          video.currentTime = video.duration;
+        }
+      });
+
+      const closeButtons = document.querySelectorAll('.ytp-ad-overlay-close-button');
+      closeButtons.forEach(btn => btn.click());
     }
-    
-    // Mute and speed up non-skippable ads
-    const videoAds = document.querySelectorAll('.ad-showing video');
-    videoAds.forEach(video => {
-      if (video && !isNaN(video.duration)) {
-        video.muted = true;
-        video.currentTime = video.duration; // skipping to end
-      }
-    });
 
-    // Close overlay ads
-    const closeButtons = document.querySelectorAll('.ytp-ad-overlay-close-button');
-    closeButtons.forEach(btn => btn.click());
-  }
+    if (config.blockShorts) {
+      const shortsIcons = document.querySelectorAll('ytd-rich-shelf-renderer yt-icon path[d^="M17.77,10.32"], ytd-rich-section-renderer yt-icon path[d^="M17.77,10.32"]');
+      shortsIcons.forEach(icon => {
+        const shelf = icon.closest('ytd-rich-shelf-renderer') || icon.closest('ytd-rich-section-renderer');
+        if (shelf && shelf.style.display !== 'none') shelf.style.display = 'none';
+      });
 
-  if (config.blockShorts) {
-    // Some shorts shelves are dynamically loaded and shadow DOM might obscure them or they lack distinct attributes.
-    // Finding shelves that have shorts icon:
-    const shortsIcons = document.querySelectorAll('ytd-rich-shelf-renderer yt-icon path[d^="M17.77,10.32"], ytd-rich-section-renderer yt-icon path[d^="M17.77,10.32"]');
-    shortsIcons.forEach(icon => {
-      const shelf = icon.closest('ytd-rich-shelf-renderer') || icon.closest('ytd-rich-section-renderer');
-      if (shelf && shelf.style.display !== 'none') {
-        shelf.style.display = 'none';
-      }
-    });
-
-    // Hide navigation items / tabs with text "Shorts"
-    const titles = document.querySelectorAll('.yt-tab-shape-wizard-tab__title, yt-formatted-string.title, span.yt-core-attributed-string');
-    titles.forEach(title => {
-      if (title.textContent && title.textContent.trim().toLowerCase() === 'shorts') {
-        const tab = title.closest('tp-yt-paper-tab') || title.closest('ytd-guide-entry-renderer') || title.closest('ytd-mini-guide-entry-renderer');
-        if (tab && tab.style.display !== 'none') {
-          tab.style.display = 'none';
+      const titles = document.querySelectorAll('.yt-tab-shape-wizard-tab__title, yt-formatted-string.title, span.yt-core-attributed-string');
+      titles.forEach(title => {
+        if (title.textContent && title.textContent.trim().toLowerCase() === 'shorts') {
+          const tab = title.closest('tp-yt-paper-tab') || title.closest('ytd-guide-entry-renderer') || title.closest('ytd-mini-guide-entry-renderer');
+          if (tab && tab.style.display !== 'none') tab.style.display = 'none';
+          const shelfTitle = title.closest('ytd-rich-section-renderer') || title.closest('ytd-rich-shelf-renderer');
+          if (shelfTitle && shelfTitle.style.display !== 'none') shelfTitle.style.display = 'none';
         }
-        const shelfTitle = title.closest('ytd-rich-section-renderer') || title.closest('ytd-rich-shelf-renderer');
-        if (shelfTitle && shelfTitle.style.display !== 'none') {
-          shelfTitle.style.display = 'none';
-        }
-      }
-    });
+      });
 
-    // Sometimes title is deeply nested in id="title-text"
-    const spanTitles = document.querySelectorAll('#title-text');
-    spanTitles.forEach(span => {
-      if (span.textContent && span.textContent.trim().toLowerCase() === 'shorts') {
-        const section = span.closest('ytd-rich-section-renderer') || span.closest('ytd-rich-shelf-renderer');
-        if (section && section.style.display !== 'none') {
-          section.style.display = 'none';
+      const spanTitles = document.querySelectorAll('#title-text');
+      spanTitles.forEach(span => {
+        if (span.textContent && span.textContent.trim().toLowerCase() === 'shorts') {
+          const section = span.closest('ytd-rich-section-renderer') || span.closest('ytd-rich-shelf-renderer');
+          if (section && section.style.display !== 'none') section.style.display = 'none';
         }
-      }
-    });
+      });
+    }
+  } catch (err) {
+    console.error("[YT Blocker] Cleanup error:", err);
   }
 }
 
